@@ -1,29 +1,41 @@
-# Travel Manager- Trip Expense Tracking and More
+# Language Omegle
 
-# Jay Raval- jraval2@uic.edu (solo)
+_**Talk to a random stranger who speaks a different language than you, in your own language.**_
 
-# [Github link](https://github.com/jayr1867/travel_management)
+## Group members
+
+- Jay Raval
+  - netID: jraval2
+- Parth Tawde
+  - netID: ---
+
+## [Github link](https://github.com/jayr1867/travel_management)
+
 If you have a private repository, please add `kaytwo` and `sauravjoshi` as collaborators.
+
+- public
 
 ## What does your application do?
 
 ### Initial thoughts (plans)
 
-* A trip expense tracker that lets use create a "trip" and create an itenerary and manage expenses for a trip.
-  * Users would be able split and share the expense (and/or the whole "trip") with others as a group, know who owes who how much money, and be able to pay using paypal or venmo.
-  * User can also create a "diary" that they could use a journal to write and upload photos/videos as a memory of the trip.
-
+- A place where a user could "video" chat with a stranger and not have to speak a common language to understand each other.
+  - While person A speaks (for example) French and person B speaks Mandarin, they can understand each other using real-time subtitles while speaking their own language.
+  - (Potential) Would also have an audio-only and/or a chat-only feature where they don't need to be connected using a video, but still get subtitles along with the "original" language audio/text.
+- If a user doesn't want to have human interaction, at all, they would be able to "video call" an AI, which would reply to them based on what the conversion is, and the language the user selects (language other than what they speak,) or they could also just randomize the language of the AI.
+  
 ## What makes it different than a CRUD app? I.e., what functionality does it provide that is not just a user interface layer on top of a database of user information,and the ability to view / add to / change that information?
 
-The app will have a group collaboration and real time sharing of expenses and trip details, including payment options to payout/request their expense logs. Also, if traveling international, the app will have a currency converter to help users keep track of their expenses in their home currency.
+### Potentially
 
+- The app would let the user talk using a video service and when there is no human found, the app would connect it to an AI "video" that would respond to the user using chatgpt's response.
+  
 ## What security and privacy concerns do you expect you (as developers) or your users to have with this application?
 
 ### Initial concerns
 
-1. Security of the user's personal information (name, email, phone number, etc)
-2. Properly implementing payment APIs (paypal, venmo, etc) to ensure that the user's payment information is secure.
-3. Users adding someone they don't intend to add to their trip by mistake.
+1. Security of the user's personal information (name, email, phone number, etc)- If we choose to store those.
+2. Explicit/profanity while on video call.
 
 ### This repository
 
