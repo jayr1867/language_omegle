@@ -7,7 +7,7 @@ _**Talk to a random stranger who speaks a different language than you, in your o
 - Jay Raval
   - netID: jraval2
 - Parth Tawde
-  - netID: ---
+  - netID: ptawde2
 
 ## [Github link](https://github.com/jayr1867/travel_management)
 
