@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Language Omegle
 
 _**Talk to a random stranger who speaks a different language than you, in your own language.**_
