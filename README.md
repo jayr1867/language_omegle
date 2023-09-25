@@ -13,7 +13,8 @@ _**Talk to a random stranger who speaks a different language than you, in your o
 
 If you have a private repository, please add `kaytwo` and `sauravjoshi` as collaborators.
 
--   public
+- public
+  - Deployed [URL](https://language-omegle.onrender.com)
 
 ## What does your application do?
 
