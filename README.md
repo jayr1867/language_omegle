@@ -9,7 +9,7 @@ _**Talk to a random stranger who speaks a different language than you, in your o
 - Parth Tawde
   - netID: ptawde2
 
-## [Github link](https://github.com/jayr1867/travel_management)
+## [Github link](https://github.com/jayr1867/language_omegle)
 
 If you have a private repository, please add `kaytwo` and `sauravjoshi` as collaborators.
 
