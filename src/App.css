@@ -40,3 +40,45 @@
 .read-the-docs {
   color: #888;
 }
+/* .container {
+  display: flex;
+} */
+
+/* .participant {
+  flex: 1;
+  border: 1px solid #ccc;
+  background-color: #f0f0f0;
+  margin-right: 20px;
+}
+
+.participant:last-child {
+  margin-right: 0;
+} */
+
+.container {
+  display: flex;
+  align-items: flex-start;
+  /* width: 100%;
+  justify-content: space-between;   */
+}
+
+.participant {
+  flex-grow: 0;
+  flex-shrink: 0;
+  width: 100%; 
+  flex: 1;
+  border: 1px solid #ccc;
+  background-color: #f0f0f0;
+  margin-right: 20px;  
+}
+
+.participant:last-child {
+  margin-right: 0;
+}
+
+.participant video {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+

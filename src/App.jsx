@@ -36,6 +36,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Video from 'twilio-video';
+import './App.css';
 
 function App() {
   const [roomName, setRoomName] = useState('');
@@ -47,7 +48,9 @@ function App() {
       const handleConnectedParticipant = (participant) => {
         const participantDiv = document.createElement("div");
         participantDiv.setAttribute("id", participant.identity);
+        participantDiv.classList.add("participant");
         containerRef.current.appendChild(participantDiv);
+        // containerRef.current.appendChild(participantDiv);
         
         participant.tracks.forEach((trackPublication) =>
           handleTrackPublication(trackPublication, participant)
@@ -85,6 +88,12 @@ function App() {
     participant.removeAllListeners();
     const participantDiv = document.getElementById(participant.identity);
     if (participantDiv) participantDiv.remove();
+    if (room.participants.size === 1) {
+      const localContainer = document.getElementById(room.localParticipant.identity);
+      if (localContainer) {
+          localContainer.classList.remove("two-participants");
+      }
+    }
   };
 
   const joinVideoRoom = async (roomName, token) => {
@@ -111,7 +120,7 @@ const handleDisconnect = () => {
     setRoom(null);
 };
 
-  return (
+return (
 <div>
     {!room ? (
         <form onSubmit={handleSubmit}>
@@ -125,7 +134,7 @@ const handleDisconnect = () => {
     ) : (
         <>
             <button onClick={handleDisconnect}>Disconnect</button>
-            <div ref={containerRef}></div>
+            <div ref={containerRef} className="container"></div>
         </>
     )}
 </div>
