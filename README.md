@@ -16,6 +16,14 @@ If you have a private repository, please add `kaytwo` and `sauravjoshi` as colla
 - public
   - Deployed [URL](https://language-omegle.onrender.com)
 
+### Server
+
+Using a NodeJS to get the access token for the video from Twilio Video API.
+
+- puiblic
+  - Deployed on `https://lang-server.onrender.com` with only one endpoint, `/join-room`, for now.
+  - For more details, please visit the repo [here](https://github.com/jayr1867/language_omegle_server).
+
 ## What does your application do?
 
 ### Initial thoughts (plans)
