@@ -81,7 +81,7 @@ function App() {
     });
     const { token } = await response.json();
     try {
-      joinVideoRoom(roomName, token);
+      await joinVideoRoom(roomName, token);
       navigate(`/room/${roomName}`);
     }
     catch (err) {
