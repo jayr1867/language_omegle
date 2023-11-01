@@ -20,9 +20,15 @@ If you have a private repository, please add `kaytwo` and `sauravjoshi` as colla
 
 Using a NodeJS to get the access token for the video from Twilio Video API.
 
-- puiblic
+- public
   - Deployed on `https://lang-server.onrender.com` with only one endpoint, `/join-room`, for now.
   - For more details, please visit the repo [here](https://github.com/jayr1867/language_omegle_server).
+
+## How to use this application?
+- Click the Deployed URL link to visit the website. Enter a room name and hit the Join Room button.
+  Switch to a different browser and use the same URL
+  and enter the same room name, for eg: Room1 and join the room. You would see two screens with two videos
+  streaming at the same time. There is a disconnect button for you to disconnect from the live video streaming.
 
 ## What does your application do?
 
