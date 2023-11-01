@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Video from 'twilio-video';
 import './App.css';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +9,18 @@ function App() {
   const containerRef = useRef(null);
   const navigate = useNavigate();
 
+  const handleDisconnectedParticipant = React.useCallback((participant) => {
+    participant.removeAllListeners();
+    const participantDiv = document.getElementById(participant.identity);
+    if (participantDiv) participantDiv.remove();
+    if (room.participants.size === 1) {
+      const localContainer = document.getElementById(room.localParticipant.identity);
+      if (localContainer) {
+          localContainer.classList.remove("two-participants");
+      }
+    }
+  }, [room]);
+  
   useEffect(() => {
     if (room) {
       const handleConnectedParticipant = (participant) => {
@@ -37,7 +49,7 @@ function App() {
         window.removeEventListener("beforeunload", room.disconnect);
       };
     }
-  }, [room]);
+  }, [room, handleDisconnectedParticipant]);
 
   const handleTrackPublication = (trackPublication, participant) => {
     const participantDiv = document.getElementById(participant.identity);
@@ -50,17 +62,7 @@ function App() {
     });
   };
 
-  const handleDisconnectedParticipant = (participant) => {
-    participant.removeAllListeners();
-    const participantDiv = document.getElementById(participant.identity);
-    if (participantDiv) participantDiv.remove();
-    if (room.participants.size === 1) {
-      const localContainer = document.getElementById(room.localParticipant.identity);
-      if (localContainer) {
-          localContainer.classList.remove("two-participants");
-      }
-    }
-  };
+
 
   const joinVideoRoom = async (roomName, token) => {
     const room = await Video.connect(token, { room: roomName });
@@ -93,6 +95,7 @@ const handleDisconnect = () => {
 return (
   <div>
     {!room ? (
+      
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -100,7 +103,11 @@ return (
           onChange={(e) => setRoomName(e.target.value)}
         />
         <button type="submit">Join Room</button>
+        <p className="instructions">
+          MVP: <br></br>Enter a room name and hit the Join Room button. Switch to a different browser (or, send a link and the room name to friend) and use the same URL and enter the same room name, for example: Room1, and join the room. You would see two screens with two videos streaming at the same time. There is a disconnect button for you to disconnect from the live video streaming.
+        </p>
       </form>
+      
     ) : (
       <div>
         <div ref={containerRef} className='container'></div>

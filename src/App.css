@@ -11,6 +11,12 @@
   /* width: 100%;
   justify-content: space-between;   */
 }
+.instructions {
+  font-size: 16px;
+  margin-top: 10px;
+  color: #7e7e7e;
+  text-align: center;
+}
 
 .participant {
   flex-grow: 0;
