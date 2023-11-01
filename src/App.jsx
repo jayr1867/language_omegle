@@ -1,47 +1,13 @@
-// import { useState } from 'react'
-// import reactLogo from './assets/react.svg'
-// import viteLogo from '/vite.svg'
-// import './App.css'
-
-// function App() {
-//   const [count, setCount] = useState(0)
-
-//   return (
-//     <>
-//       <div>
-//         <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-//           <img src={viteLogo} className="logo" alt="Vite logo" />
-//         </a>
-//         <a href="https://react.dev" target="_blank" rel="noreferrer">
-//           <img src={reactLogo} className="logo react" alt="React logo" />
-//         </a>
-//       </div>
-//       <h1>Vite + React</h1>
-//       <div className="card">
-//         <button onClick={() => setCount((count) => count + 1)}>
-//           count is {count}
-//         </button>
-//         <p>
-//           Edit <code>src/App.jsx</code> and save to test HMR
-//         </p>
-//       </div>
-//       <p className="read-the-docs">
-//         Click on the Vite and React logos to learn more
-//       </p>
-//     </>
-//   )
-// }
-
-// export default App
-
 import { useState, useEffect, useRef } from 'react';
 import Video from 'twilio-video';
 import './App.css';
+import { useNavigate } from 'react-router-dom';
 
 function App() {
   const [roomName, setRoomName] = useState('');
   const [room, setRoom] = useState(null);
   const containerRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (room) {
@@ -103,7 +69,7 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch("https://wholeimmaterialsuperuser.jayraval20.repl.co/join-room", {
+    const response = await fetch("https://lang-server.onrender.com/join-room", {
       method: "POST",
       headers: {
         "Accept": "application/json",
@@ -113,33 +79,40 @@ function App() {
     });
     const { token } = await response.json();
     joinVideoRoom(roomName, token);
+    navigate(`/room/${roomName}`);
   };
 
 const handleDisconnect = () => {
     room.disconnect();
     setRoom(null);
+    navigate("/");
+    setRoomName("");
 };
 
-return (
-<div>
-    {!room ? (
-        <form onSubmit={handleSubmit}>
-            <input
-                type="text"
-                value={roomName}
-                onChange={(e) => setRoomName(e.target.value)}
-            />
-            <button type="submit">Join Room</button>
-        </form>
-    ) : (
-        <>
-            <button onClick={handleDisconnect}>Disconnect</button>
-            <div ref={containerRef} className="container"></div>
-        </>
-    )}
-</div>
 
-  );
+return (
+  <div>
+    {!room ? (
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          value={roomName}
+          onChange={(e) => setRoomName(e.target.value)}
+        />
+        <button type="submit">Join Room</button>
+      </form>
+    ) : (
+      <div>
+        <div ref={containerRef} className='container'></div>
+        <div className="translucent-banner">
+          <button className="disconnect-button" onClick={handleDisconnect}>
+            Disconnect
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+);
 }
 
 export default App;
