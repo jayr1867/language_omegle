@@ -106,20 +106,30 @@ function App() {
     joinVideoRoom(roomName, token);
   };
 
+const handleDisconnect = () => {
+    room.disconnect();
+    setRoom(null);
+};
+
   return (
-    <div>
-      {!room && (
+<div>
+    {!room ? (
         <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            value={roomName}
-            onChange={(e) => setRoomName(e.target.value)}
-          />
-          <button type="submit">Join Room</button>
+            <input
+                type="text"
+                value={roomName}
+                onChange={(e) => setRoomName(e.target.value)}
+            />
+            <button type="submit">Join Room</button>
         </form>
-      )}
-      <div ref={containerRef}></div>
-    </div>
+    ) : (
+        <>
+            <button onClick={handleDisconnect}>Disconnect</button>
+            <div ref={containerRef}></div>
+        </>
+    )}
+</div>
+
   );
 }
 
