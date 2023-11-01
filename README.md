@@ -25,10 +25,12 @@ Using a NodeJS to get the access token for the video from Twilio Video API.
   - For more details, please visit the repo [here](https://github.com/jayr1867/language_omegle_server).
 
 ## How to use this application?
-- Click the Deployed URL link to visit the website. Enter a room name and hit the Join Room button.
-  Switch to a different browser and use the same URL
+
+  Click the Deployed URL link to visit the website. Enter a room name and hit the Join Room button.  
+  Switch to a different browser (or, send a link and the room name to friend) and use the same URL
   and enter the same room name, for eg: Room1 and join the room. You would see two screens with two videos
-  streaming at the same time. There is a disconnect button for you to disconnect from the live video streaming.
+  streaming at the same time. There is a disconnect button for you to disconnect from the live video streaming.  
+  There could only be at max two participants in a room, since we want to make it like Omegle.
 
 ## What does your application do?
 

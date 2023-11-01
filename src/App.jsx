@@ -20,7 +20,7 @@ function App() {
       }
     }
   }, [room]);
-  
+
   useEffect(() => {
     if (room) {
       const handleConnectedParticipant = (participant) => {
@@ -80,8 +80,13 @@ function App() {
       body: JSON.stringify({ roomName }),
     });
     const { token } = await response.json();
-    joinVideoRoom(roomName, token);
-    navigate(`/room/${roomName}`);
+    try {
+      joinVideoRoom(roomName, token);
+      navigate(`/room/${roomName}`);
+    }
+    catch (err) {
+      alert(err);
+    }
   };
 
 const handleDisconnect = () => {
@@ -104,7 +109,12 @@ return (
         />
         <button type="submit">Join Room</button>
         <p className="instructions">
-          MVP: <br></br>Enter a room name and hit the Join Room button. Switch to a different browser (or, send a link and the room name to friend) and use the same URL and enter the same room name, for example: Room1, and join the room. You would see two screens with two videos streaming at the same time. There is a disconnect button for you to disconnect from the live video streaming.
+          MVP: <br></br>Enter a room name and hit the Join Room button. 
+          Switch to a different browser (or, send a link and the room name to friend) and use the same URL and enter the same room name, 
+          for example: Room1, and join the room. You would see two screens with two videos streaming at the same time. 
+          There is a disconnect button for you to disconnect from the live video streaming.
+          <br></br>
+          There could only be at max two participants in a room, since we want to make it like Omegle.
         </p>
       </form>
       
