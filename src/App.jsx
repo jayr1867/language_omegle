@@ -9,6 +9,77 @@ function App() {
   const containerRef = useRef(null);
   const navigate = useNavigate();
 
+  // Web Audio API context
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+  const processAudioStream = (audioStream) => {
+    const source = audioContext.createMediaStreamSource(audioStream);
+
+    // Create an AnalyserNode
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048; // Size of the FFT for frequency-domain analysis
+
+    // Connect the source to the analyser
+    source.connect(analyser);
+
+    // Buffer to store data
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    // Function to get audio data
+    const getAudioData = () => {
+      analyser.getByteFrequencyData(dataArray);
+      // Here you can use dataArray for further processing
+      console.log(dataArray); // Example of logging the frequency data
+    };
+
+    // Call getAudioData periodically
+    setInterval(getAudioData, 100);
+  };
+
+  // Function to extract audio stream from a participant
+  const extractAudioStream = (participant) => {
+    const audioTrack = Array.from(participant.audioTracks.values())[0]?.track;
+    let audioStream;
+    if (audioTrack) {
+      audioStream = new MediaStream([audioTrack.mediaStreamTrack]);
+      processAudioStream(audioStream);
+    }
+    return audioStream;
+  };
+
+  // Handle the publication of each track
+  const handleTrackPublication = (trackPublication, participant) => {
+    const participantDiv = document.getElementById(participant.identity);
+    if (trackPublication.track) {
+      participantDiv.appendChild(trackPublication.track.attach());
+    }
+
+    trackPublication.on("subscribed", (track) => {
+      participantDiv.appendChild(track.attach());
+      if (track.kind === "audio") {
+        extractAudioStream(participant);  // Extract and process the audio stream
+      }
+    });
+  };
+
+  const handleConnectedParticipant = (participant) => {
+    const participantDiv = document.createElement("div");
+    participantDiv.setAttribute("id", participant.identity);
+    participantDiv.classList.add("participant");
+    containerRef.current.appendChild(participantDiv);
+
+    participant.tracks.forEach((trackPublication) =>
+      handleTrackPublication(trackPublication, participant),
+    );
+
+    participant.on("trackPublished", (trackPublication) =>
+      handleTrackPublication(trackPublication, participant),
+    );
+
+    extractAudioStream(participant);  // Extract and process audio stream for the connected participant
+  };
+
   const handleDisconnectedParticipant = React.useCallback(
     (participant) => {
       participant.removeAllListeners();
@@ -28,22 +99,6 @@ function App() {
 
   useEffect(() => {
     if (room) {
-      const handleConnectedParticipant = (participant) => {
-        const participantDiv = document.createElement("div");
-        participantDiv.setAttribute("id", participant.identity);
-        participantDiv.classList.add("participant");
-        containerRef.current.appendChild(participantDiv);
-        // containerRef.current.appendChild(participantDiv);
-
-        participant.tracks.forEach((trackPublication) =>
-          handleTrackPublication(trackPublication, participant),
-        );
-
-        participant.on("trackPublished", (trackPublication) =>
-          handleTrackPublication(trackPublication, participant),
-        );
-      };
-
       handleConnectedParticipant(room.localParticipant);
       room.participants.forEach(handleConnectedParticipant);
       room.on("participantConnected", handleConnectedParticipant);
@@ -55,17 +110,6 @@ function App() {
       };
     }
   }, [room, handleDisconnectedParticipant]);
-
-  const handleTrackPublication = (trackPublication, participant) => {
-    const participantDiv = document.getElementById(participant.identity);
-    if (trackPublication.track) {
-      participantDiv.appendChild(trackPublication.track.attach());
-    }
-
-    trackPublication.on("subscribed", (track) => {
-      participantDiv.appendChild(track.attach());
-    });
-  };
 
   const joinVideoRoom = async (roomName, token) => {
     const room = await Video.connect(token, { room: roomName });
@@ -109,7 +153,7 @@ function App() {
             onChange={(e) => setRoomName(e.target.value)}
           />
           <button type="submit">Join Room</button>
-          <p className="instructions">
+          <div className="instructions">
             <h4><b>MVP</b></h4>
             <ul>
               <li><strong>Please wait for a few seconds for the server to wake up after clicking the Join Room once.</strong></li>
@@ -119,7 +163,7 @@ function App() {
               <li>There is a disconnect button for you to disconnect from the live video streaming.</li>
               <li>There could only be at max two participants in a room, since we want to make it like Omegle.</li>
             </ul>
-          </p>
+          </div>
         </form>
       ) : (
         <div>
