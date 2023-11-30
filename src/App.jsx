@@ -35,14 +35,17 @@ function App() {
     // Function to get audio data
     const getAudioData = () => {
       analyser.getByteFrequencyData(dataArray);
-      // Here you can use dataArray for further processing
-      // console.log(dataArray);// Example of logging the frequency data
-      if (ws.readyState === 1){
-        ws.send(JSON.stringify({ audioData: Array.from(dataArray) }));
 
-        // ws.addEventListener("message", (event) => {
-        //   console.log(event.data);
-        // });
+      // Perform LINEAR16 conversion
+      const linear16Data = dataArray.map((value) => {
+        // Scale to a 16-bit range (from 0 to 65535)
+        const scaledValue = (value / 255) * 65535;
+        // Quantize to 16-bit integer
+        return Math.round(scaledValue);
+      });
+
+      if (ws.readyState === 1) {
+        ws.send(JSON.stringify({ audioData: linear16Data }));
       }
 
 
