@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import Video from "twilio-video";
 import "./App.css";
 import { useNavigate } from "react-router-dom";
+// import WebSocket from "ws";
+
+
 
 function App() {
   const [roomName, setRoomName] = useState("");
@@ -9,10 +12,13 @@ function App() {
   const containerRef = useRef(null);
   const navigate = useNavigate();
 
+  let ws;
+
   // Web Audio API context
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
   const processAudioStream = (audioStream) => {
+     ws = new WebSocket("ws://localhost:5000");
     const source = audioContext.createMediaStreamSource(audioStream);
 
     // Create an AnalyserNode
@@ -30,11 +36,27 @@ function App() {
     const getAudioData = () => {
       analyser.getByteFrequencyData(dataArray);
       // Here you can use dataArray for further processing
-      console.log(dataArray); // Example of logging the frequency data
+      // console.log(dataArray);// Example of logging the frequency data
+      if (ws.readyState === 1){
+        ws.send(JSON.stringify({ audioData: Array.from(dataArray) }));
+
+        // ws.addEventListener("message", (event) => {
+        //   console.log(event.data);
+        // });
+      }
+
+
+      // console.log(ws.readyState);
+      ws.error = (err) => {
+        alert(err);
+      }
+      
     };
 
     // Call getAudioData periodically
-    setInterval(getAudioData, 100);
+    if (audioStream){
+      setInterval(getAudioData, 100);
+    }
   };
 
   // Function to extract audio stream from a participant
@@ -136,6 +158,7 @@ function App() {
   };
 
   const handleDisconnect = () => {
+    ws.close();
     room.disconnect();
     setRoom(null);
     navigate("/");
