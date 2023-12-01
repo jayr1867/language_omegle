@@ -112,10 +112,16 @@ function App() {
     setLanguages(languagesData);
     if (room) {
       const handleConnectedParticipant = (participant) => {
-        const participantDiv = document.createElement("div");
-        participantDiv.setAttribute("id", participant.identity);
-        participantDiv.classList.add("participant");
-        containerRef.current.appendChild(participantDiv);
+        let participantDiv = document.getElementById(participant.identity);
+
+        if (!participantDiv) {
+          // Create the participant div if it doesn't exist
+          participantDiv = document.createElement("div");
+          participantDiv.setAttribute("id", participant.identity);
+          participantDiv.classList.add("participant");
+          containerRef.current.appendChild(participantDiv);
+        }
+        
         // containerRef.current.appendChild(participantDiv);
 
         participant.tracks.forEach((trackPublication) =>
@@ -127,7 +133,9 @@ function App() {
         );
       };
 
-      handleConnectedParticipant(room.localParticipant);
+      if (!document.getElementById(room.localParticipant.identity)) {
+        handleConnectedParticipant(room.localParticipant);
+      }
       room.participants.forEach(handleConnectedParticipant);
       room.on("participantConnected", handleConnectedParticipant);
       room.on("participantDisconnected", handleDisconnectedParticipant);
