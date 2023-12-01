@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import Video from "twilio-video";
 import "./App.css";
 import { useNavigate } from "react-router-dom";
-import languagesData from './languages.json'
+import languagesData from './languages.json';
+import io from "socket.io-client";
+
 // import WebSocket from "ws";
 
 
@@ -10,87 +12,46 @@ import languagesData from './languages.json'
 function App() {
   const [roomName, setRoomName] = useState("");
   const [room, setRoom] = useState(null);
-  const [languages, setLanguages] = useState([]);
+  const [languages, setLanguages] = useState(languagesData);
   const [selectedLanguage, setSelectedLanguage] = useState('');
   const containerRef = useRef(null);
   const navigate = useNavigate();
+  const [connection, setConnection] = useState(null);
+  const audioContextRef = useRef(null);
+  const audioInputRef = useRef(null);
 
-  let ws;
+  // let ws;
 
-  // Web Audio API context
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  // // Web Audio API context
+  // const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  useEffect(() => {
+    const newSocket = io("http://localhost:5050");
+    setConnection(newSocket);
+
+    newSocket.on("connect", () => console.log("Connected to Socket.io server"));
+    newSocket.on("disconnect", () => console.log("Disconnected from Socket.io server"));
+
+    return () => newSocket.close();
+  }, []);
 
   const processAudioStream = (audioStream) => {
-     ws = new WebSocket("ws://localhost:5000");
+    audioContextRef.current = new window.AudioContext();
+    audioInputRef.current = audioContextRef.current.createMediaStreamSource(audioStream);
 
-    const source = audioContext.createMediaStreamSource(audioStream);
-
-    // Create an AnalyserNode
-    const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 2048; // Size of the FFT for frequency-domain analysis
-
-    // Connect the source to the analyser
-    source.connect(analyser);
-
-    // Buffer to store data
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    // Function to get audio data
-    const getAudioData = () => {
-      analyser.getByteFrequencyData(dataArray);
-
-      // Perform LINEAR16 conversion
-      const linear16Data = dataArray.map((value) => {
-        // Scale to a 16-bit range (from 0 to 65535)
-        const scaledValue = (value / 255) * 65535;
-        // Quantize to 16-bit integer
-        return Math.round(scaledValue);
-      });
-
-      if (ws.readyState === 1) {
-        ws.send(JSON.stringify({ audioData: linear16Data }));
+    const processor = audioContextRef.current.createScriptProcessor(4096, 1, 1);
+    processor.onaudioprocess = (e) => {
+      if (connection && connection.connected) {
+        const audioData = e.inputBuffer.getChannelData(0);
+        connection.emit("send_audio_data", audioData.buffer);
       }
-
-
-      // console.log(ws.readyState);
-      ws.error = (err) => {
-        alert(err);
-      }
-      
     };
 
-    // Call getAudioData periodically
-    if (audioStream){
-      setInterval(getAudioData, 100);
-    }
+    audioInputRef.current.connect(processor);
+    processor.connect(audioContextRef.current.destination);
   };
 
-  // Function to extract audio stream from a participant
-  const extractAudioStream = (participant) => {
-    const audioTrack = Array.from(participant.audioTracks.values())[0]?.track;
-    let audioStream;
-    if (audioTrack) {
-      audioStream = new MediaStream([audioTrack.mediaStreamTrack]);
-      processAudioStream(audioStream);
-    }
-    return audioStream;
-  };
 
-  // Handle the publication of each track
-  const handleTrackPublication = (trackPublication, participant) => {
-    const participantDiv = document.getElementById(participant.identity);
-    if (trackPublication.track) {
-      participantDiv.appendChild(trackPublication.track.attach());
-    }
 
-    trackPublication.on("subscribed", (track) => {
-      participantDiv.appendChild(track.attach());
-      if (track.kind === "audio") {
-        extractAudioStream(participant);  // Extract and process the audio stream
-      }
-    });
-  };
 
   const handleConnectedParticipant = (participant) => {
     const participantDiv = document.createElement("div");
@@ -107,6 +68,30 @@ function App() {
     );
 
     extractAudioStream(participant);  // Extract and process audio stream for the connected participant
+  };
+
+    // Function to extract audio stream from a participant
+    const extractAudioStream = (participant) => {
+      const audioTrack = Array.from(participant.audioTracks.values())[0]?.track;
+      if (audioTrack) {
+        const audioStream = new MediaStream([audioTrack.mediaStreamTrack]);
+        processAudioStream(audioStream);
+      }
+    };
+
+  // Handle the publication of each track
+  const handleTrackPublication = (trackPublication, participant) => {
+    const participantDiv = document.getElementById(participant.identity);
+    if (trackPublication.track) {
+      participantDiv.appendChild(trackPublication.track.attach());
+    }
+
+    trackPublication.on("subscribed", (track) => {
+      participantDiv.appendChild(track.attach());
+      if (track.kind === "audio") {
+        extractAudioStream(participant);  // Extract and process the audio stream
+      }
+    });
   };
 
   const handleDisconnectedParticipant = React.useCallback(
@@ -159,6 +144,7 @@ function App() {
       roomName,
       language: selectedLanguage,
     };
+
     try {
     const response = await fetch("https://lang-server.onrender.com/join-room", {
       method: "POST",
@@ -177,8 +163,12 @@ function App() {
   };
 
   const handleDisconnect = () => {
-    ws.close();
-    room.disconnect();
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+    }
+    if (room) {
+      room.disconnect();
+    }
     setRoom(null);
     navigate("/");
     setRoomName("");
@@ -193,7 +183,7 @@ function App() {
             onChange={(e) => setSelectedLanguage(e.target.value)}
             style={{ width: '100%', fontSize: '16px', padding: '10px' }}
           >
-            <option value="">Select a language</option> {/* Default option */}
+            <option value="">Select a language</option>
             {languages.map((lang, index) => (
               <option key={index} value={lang['BCP-47']}>{lang.Name}</option>
             ))}
