@@ -26,6 +26,7 @@ function App() {
   const [room, setRoom] = useState(null);
   const [languages, setLanguages] = useState([]);
   const [selectedLanguage, setSelectedLanguage] = useState('');
+  const [receivedAudioText, setReceivedAudioText] = useState("");
   const containerRef = useRef(null);
   const navigate = useNavigate();
   
@@ -44,7 +45,7 @@ function App() {
 
   const connect = (requestBody) => {
     connection?.disconnect();
-    const socket = io.connect("http://localhost:5000");
+    const socket = io.connect("https://4lq7x35r-5000.use.devtunnels.ms/");
     socket.on("connect", () => {
       console.log("connected", socket.id);
       setConnection(socket);
@@ -65,6 +66,7 @@ function App() {
     socket.on("receive_audio_text", (data) => {
       // speechRecognized(data);
       console.log("received audio text", data);
+      setReceivedAudioText(data.text);
     });
 
     socket.on("disconnect", () => {
@@ -186,6 +188,14 @@ function App() {
     }
   }, [room, isRecording, recorder, connection, handleDisconnectedParticipant]);
 
+  // New useEffect for auto-scrolling captions
+useEffect(() => {
+  const captionsContainer = document.querySelector('.captions-container');
+  if (captionsContainer) {
+    captionsContainer.scrollTop = captionsContainer.scrollHeight;
+  }
+}, [receivedAudioText]);
+
   const handleTrackPublication = (trackPublication, participant) => {
     const participantDiv = document.getElementById(participant.identity);
     if (trackPublication.track) {
@@ -291,6 +301,10 @@ function App() {
               Disconnect
             </button>
           </div>
+            <div className="received-audio-text">
+              <h3>Received Audio Text:</h3>
+              <p>{receivedAudioText}</p>
+            </div>
         </div>
       )}
     </div>
