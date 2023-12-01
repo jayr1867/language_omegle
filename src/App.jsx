@@ -29,10 +29,7 @@ function App() {
   const [receivedAudioText, setReceivedAudioText] = useState("");
   const containerRef = useRef(null);
   const navigate = useNavigate();
-  
 
-  // const [currentRecognition, setCurrentRecognition] = useState();
-  // const [recognitionHistory, setRecognitionHistory] = useState([]);
   const [connection, setConnection] = useState();
   const [isRecording, setIsRecording] = useState(false);
   const [recorder, setRecorder] = useState();
@@ -40,12 +37,10 @@ function App() {
   const audioContextRef = useRef();
   const audioInputRef = useRef();
 
-  // const [requestBody, setRequestBody] = useState({});
-
 
   const connect = (requestBody) => {
     connection?.disconnect();
-    const socket = io.connect("https://4lq7x35r-5000.use.devtunnels.ms/");
+    const socket = io.connect("http://127.0.0.1:5000/", { reconnection: false });
     socket.on("connect", () => {
       console.log("connected", socket.id);
       setConnection(socket);
@@ -69,15 +64,23 @@ function App() {
       setReceivedAudioText(data.text);
     });
 
-    socket.on("disconnect", () => {
-      console.log("disconnected");
+    socket.on("disconnect", (reason) => {
+
+      if (reason !== "io server disconnect" && reason !== "io client disconnect") {
+        // the disconnection was initiated by the server, you need to reconnect manually
+        // connect(requestBody);
+        alert("socket connection abruptyly disconnected, please try a different room");
+        handleDisconnect();
+        window.location.reload();
+      }
+      
+      console.log("disconnected due to ", reason);
     });
   };
 
   const disconnect = () => {
     if (!connection) {
-      alert("No web socket connection, cannot connect to the room!");
-      room.disconnect();
+      
       return;
     } 
     connection?.emit("endGoogleCloudStream", roomName);
@@ -176,7 +179,9 @@ function App() {
           };
           setIsRecording(true);
         } else {
-          // handleDisconnect();
+          alert("No web socket connection, cannot join the room!");
+          handleDisconnect();
+          // room.disconnect();
           console.error("No connection");
         }
       })();
@@ -259,8 +264,12 @@ useEffect(() => {
 
   const handleDisconnect = () => {
     disconnect();
+
     console.log("disconnecting");
-    room.disconnect();
+    if (room) {
+      // disconnect();
+      room.disconnect();
+    }
     setRoom(null);
     navigate("/");
     setRoomName("");
