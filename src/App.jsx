@@ -39,6 +39,8 @@ function App() {
   const audioContextRef = useRef();
   const audioInputRef = useRef();
 
+  const [requestBody, setRequestBody] = useState({});
+
 
   const connect = () => {
     connection?.disconnect();
@@ -48,9 +50,11 @@ function App() {
       setConnection(socket);
     });
 
+    socket.emit('query', requestBody);
+
     socket.emit("send_message", "hello world");
 
-    socket.emit("startGoogleCloudStream");
+    socket.emit("startGoogleCloudStream", requestBody);
 
     socket.on("receive_message", (data) => {
       console.log("received message", data);
@@ -62,13 +66,13 @@ function App() {
     });
 
     socket.on("disconnect", () => {
-      console.log("disconnected", socket.id);
+      console.log("disconnected");
     });
   };
 
   const disconnect = () => {
     if (!connection) return;
-    connection?.emit("endGoogleCloudStream");
+    connection?.emit("endGoogleCloudStream", requestBody);
     connection?.disconnect();
     processorRef.current?.disconnect();
     audioInputRef.current?.disconnect();
@@ -193,17 +197,23 @@ function App() {
 
   const handleSubmit = async (e) => {
 
-    connect();
-    e.preventDefault();
+    
     if (!selectedLanguage || !roomName) {
       alert('Please select a language and enter a room name.');
       return;
     }
-    const requestBody = {
+    e.preventDefault();
+    
+    setRequestBody({
       roomName,
-      language: selectedLanguage,
-    };
-    const response = await fetch("https://language-omegle.onrender.com//join-room", {
+      sttLang: selectedLanguage,
+      transLang: selectedLanguage.split('-')[0],
+    });
+
+    connect(requestBody);
+
+    console.log(requestBody.sttLang);
+    const response = await fetch("https://lang-server.onrender.com/join-room", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -221,7 +231,7 @@ function App() {
   };
 
   const handleDisconnect = () => {
-    disconnect();
+    disconnect(requestBody);
     room.disconnect();
     setRoom(null);
     navigate("/");
@@ -250,7 +260,7 @@ function App() {
             value={roomName}
             onChange={(e) => setRoomName(e.target.value)}
           />
-          <button type="submit" disabled={!selectedLanguage || !roomName}>Join Room</button>
+          <button type="submit">Join Room</button>
           <p className="instructions">
             <h4><b>MVP</b></h4>
             <ul>
