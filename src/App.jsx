@@ -3,9 +3,23 @@ import Video from "twilio-video";
 import "./App.css";
 import { useNavigate } from "react-router-dom";
 import languagesData from './languages.json'
-// import WebSocket from "ws";
 
 
+import * as io from "socket.io-client";
+
+
+const sampleRate = 16000;
+
+const getMediaStream = () =>
+  navigator.mediaDevices.getUserMedia({
+    audio: {
+      deviceId: "default",
+      sampleRate: sampleRate,
+      sampleSize: 16,
+      channelCount: 1,
+    },
+    video: false,
+  });
 
 function App() {
   const [roomName, setRoomName] = useState("");
@@ -14,100 +28,56 @@ function App() {
   const [selectedLanguage, setSelectedLanguage] = useState('');
   const containerRef = useRef(null);
   const navigate = useNavigate();
+  
 
-  let ws;
-
-  // Web Audio API context
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-  const processAudioStream = (audioStream) => {
-     ws = new WebSocket("ws://localhost:5000");
-
-    const source = audioContext.createMediaStreamSource(audioStream);
-
-    // Create an AnalyserNode
-    const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 2048; // Size of the FFT for frequency-domain analysis
-
-    // Connect the source to the analyser
-    source.connect(analyser);
-
-    // Buffer to store data
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    // Function to get audio data
-    const getAudioData = () => {
-      analyser.getByteFrequencyData(dataArray);
-
-      // Perform LINEAR16 conversion
-      const linear16Data = dataArray.map((value) => {
-        // Scale to a 16-bit range (from 0 to 65535)
-        const scaledValue = (value / 255) * 65535;
-        // Quantize to 16-bit integer
-        return Math.round(scaledValue);
-      });
-
-      if (ws.readyState === 1) {
-        ws.send(JSON.stringify({ audioData: linear16Data }));
-      }
+  // const [currentRecognition, setCurrentRecognition] = useState();
+  // const [recognitionHistory, setRecognitionHistory] = useState([]);
+  const [connection, setConnection] = useState();
+  const [isRecording, setIsRecording] = useState(false);
+  const [recorder, setRecorder] = useState();
+  const processorRef = useRef();
+  const audioContextRef = useRef();
+  const audioInputRef = useRef();
 
 
-      // console.log(ws.readyState);
-      ws.error = (err) => {
-        alert(err);
-      }
-      
-    };
+  const connect = () => {
+    connection?.disconnect();
+    const socket = io.connect("http://localhost:5000");
+    socket.on("connect", () => {
+      console.log("connected", socket.id);
+      setConnection(socket);
+    });
 
-    // Call getAudioData periodically
-    if (audioStream){
-      setInterval(getAudioData, 100);
-    }
-  };
+    socket.emit("send_message", "hello world");
 
-  // Function to extract audio stream from a participant
-  const extractAudioStream = (participant) => {
-    const audioTrack = Array.from(participant.audioTracks.values())[0]?.track;
-    let audioStream;
-    if (audioTrack) {
-      audioStream = new MediaStream([audioTrack.mediaStreamTrack]);
-      processAudioStream(audioStream);
-    }
-    return audioStream;
-  };
+    socket.emit("startGoogleCloudStream");
 
-  // Handle the publication of each track
-  const handleTrackPublication = (trackPublication, participant) => {
-    const participantDiv = document.getElementById(participant.identity);
-    if (trackPublication.track) {
-      participantDiv.appendChild(trackPublication.track.attach());
-    }
+    socket.on("receive_message", (data) => {
+      console.log("received message", data);
+    });
 
-    trackPublication.on("subscribed", (track) => {
-      participantDiv.appendChild(track.attach());
-      if (track.kind === "audio") {
-        extractAudioStream(participant);  // Extract and process the audio stream
-      }
+    socket.on("receive_audio_text", (data) => {
+      // speechRecognized(data);
+      console.log("received audio text", data);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("disconnected", socket.id);
     });
   };
 
-  const handleConnectedParticipant = (participant) => {
-    const participantDiv = document.createElement("div");
-    participantDiv.setAttribute("id", participant.identity);
-    participantDiv.classList.add("participant");
-    containerRef.current.appendChild(participantDiv);
-
-    participant.tracks.forEach((trackPublication) =>
-      handleTrackPublication(trackPublication, participant),
-    );
-
-    participant.on("trackPublished", (trackPublication) =>
-      handleTrackPublication(trackPublication, participant),
-    );
-
-    extractAudioStream(participant);  // Extract and process audio stream for the connected participant
+  const disconnect = () => {
+    if (!connection) return;
+    connection?.emit("endGoogleCloudStream");
+    connection?.disconnect();
+    processorRef.current?.disconnect();
+    audioInputRef.current?.disconnect();
+    audioContextRef.current?.close();
+    setConnection(undefined);
+    setRecorder(undefined);
+    setIsRecording(false);
   };
+
 
   const handleDisconnectedParticipant = React.useCallback(
     (participant) => {
@@ -128,20 +98,93 @@ function App() {
 
   useEffect(() => {
     setLanguages(languagesData);
-
-
     if (room) {
+      const handleConnectedParticipant = (participant) => {
+        const participantDiv = document.createElement("div");
+        participantDiv.setAttribute("id", participant.identity);
+        participantDiv.classList.add("participant");
+        containerRef.current.appendChild(participantDiv);
+        // containerRef.current.appendChild(participantDiv);
+
+        participant.tracks.forEach((trackPublication) =>
+          handleTrackPublication(trackPublication, participant),
+        );
+
+        participant.on("trackPublished", (trackPublication) =>
+          handleTrackPublication(trackPublication, participant),
+        );
+      };
+
       handleConnectedParticipant(room.localParticipant);
       room.participants.forEach(handleConnectedParticipant);
       room.on("participantConnected", handleConnectedParticipant);
       room.on("participantDisconnected", handleDisconnectedParticipant);
 
+
+      (async () => {
+        if (connection) {
+          if (isRecording) {
+            return;
+          }
+
+          const stream = await getMediaStream();
+
+          audioContextRef.current = new window.AudioContext();
+
+          await audioContextRef.current.audioWorklet.addModule(
+            "/src/worklets/recorderWorkletProcessor.js"
+          );
+
+          audioContextRef.current.resume();
+
+          audioInputRef.current =
+            audioContextRef.current.createMediaStreamSource(stream);
+
+          processorRef.current = new AudioWorkletNode(
+            audioContextRef.current,
+            "recorder.worklet"
+          );
+
+          processorRef.current.connect(audioContextRef.current.destination);
+          audioContextRef.current.resume();
+
+          audioInputRef.current.connect(processorRef.current);
+
+          processorRef.current.port.onmessage = (event) => {
+            const audioData = event.data;
+            connection.emit("send_audio_data", { audio: audioData });
+          };
+          setIsRecording(true);
+        } else {
+          console.error("No connection");
+        }
+      })();
+
       return () => {
         window.removeEventListener("pagehide", room.disconnect);
         window.removeEventListener("beforeunload", room.disconnect);
+
+        if (isRecording) {
+          processorRef.current?.disconnect();
+          audioInputRef.current?.disconnect();
+          if (audioContextRef.current?.state !== "closed") {
+            audioContextRef.current?.close();
+          }
+        }
       };
     }
-  }, [room, handleDisconnectedParticipant]);
+  }, [room, isRecording, recorder, connection, handleDisconnectedParticipant]);
+
+  const handleTrackPublication = (trackPublication, participant) => {
+    const participantDiv = document.getElementById(participant.identity);
+    if (trackPublication.track) {
+      participantDiv.appendChild(trackPublication.track.attach());
+    }
+
+    trackPublication.on("subscribed", (track) => {
+      participantDiv.appendChild(track.attach());
+    });
+  };
 
   const joinVideoRoom = async (roomName, token) => {
     const room = await Video.connect(token, { room: roomName });
@@ -149,26 +192,27 @@ function App() {
   };
 
   const handleSubmit = async (e) => {
+
+    connect();
     e.preventDefault();
     if (!selectedLanguage || !roomName) {
       alert('Please select a language and enter a room name.');
       return;
     }
-
     const requestBody = {
       roomName,
       language: selectedLanguage,
     };
-    try {
-    const response = await fetch("https://lang-server.onrender.com/join-room", {
+    const response = await fetch("https://language-omegle.onrender.com//join-room", {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify( requestBody ),
+      body: JSON.stringify({ roomName }),
     });
     const { token } = await response.json();
+    try {
       await joinVideoRoom(roomName, token);
       navigate(`/room/${roomName}`);
     } catch (err) {
@@ -177,7 +221,7 @@ function App() {
   };
 
   const handleDisconnect = () => {
-    ws.close();
+    disconnect();
     room.disconnect();
     setRoom(null);
     navigate("/");
@@ -194,11 +238,12 @@ function App() {
             style={{ width: '100%', fontSize: '16px', padding: '10px' }}
           >
             <option value="">Select a language</option> {/* Default option */}
+            <option value="">Select a language</option>
             {languages.map((lang, index) => (
               <option key={index} value={lang['BCP-47']}>{lang.Name}</option>
             ))}
           </select>
-          <h3>Select a Language Before You Proceed</h3>
+          <h3>Select the language before proceeding</h3>
           <input
             type="text"
             placeholder="Enter room name"
@@ -206,7 +251,7 @@ function App() {
             onChange={(e) => setRoomName(e.target.value)}
           />
           <button type="submit" disabled={!selectedLanguage || !roomName}>Join Room</button>
-          <div className="instructions">
+          <p className="instructions">
             <h4><b>MVP</b></h4>
             <ul>
               <li><strong>Please wait for a few seconds for the server to wake up after clicking the Join Room once.</strong></li>
@@ -216,7 +261,7 @@ function App() {
               <li>There is a disconnect button for you to disconnect from the live video streaming.</li>
               <li>There could only be at max two participants in a room, since we want to make it like Omegle.</li>
             </ul>
-          </div>
+          </p>
         </form>
       ) : (
         <div>
