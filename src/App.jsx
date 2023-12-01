@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Video from "twilio-video";
 import "./App.css";
 import { useNavigate } from "react-router-dom";
+import languagesData from './languages.json'
 // import WebSocket from "ws";
 
 
@@ -9,6 +10,8 @@ import { useNavigate } from "react-router-dom";
 function App() {
   const [roomName, setRoomName] = useState("");
   const [room, setRoom] = useState(null);
+  const [languages, setLanguages] = useState([]);
+  const [selectedLanguage, setSelectedLanguage] = useState('');
   const containerRef = useRef(null);
   const navigate = useNavigate();
 
@@ -19,6 +22,7 @@ function App() {
 
   const processAudioStream = (audioStream) => {
      ws = new WebSocket("ws://localhost:5000");
+
     const source = audioContext.createMediaStreamSource(audioStream);
 
     // Create an AnalyserNode
@@ -123,6 +127,9 @@ function App() {
   );
 
   useEffect(() => {
+    setLanguages(languagesData);
+
+
     if (room) {
       handleConnectedParticipant(room.localParticipant);
       room.participants.forEach(handleConnectedParticipant);
@@ -143,16 +150,25 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedLanguage || !roomName) {
+      alert('Please select a language and enter a room name.');
+      return;
+    }
+
+    const requestBody = {
+      roomName,
+      language: selectedLanguage,
+    };
+    try {
     const response = await fetch("https://lang-server.onrender.com/join-room", {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ roomName }),
+      body: JSON.stringify( requestBody ),
     });
     const { token } = await response.json();
-    try {
       await joinVideoRoom(roomName, token);
       navigate(`/room/${roomName}`);
     } catch (err) {
@@ -172,13 +188,24 @@ function App() {
     <div>
       {!room ? (
         <form onSubmit={handleSubmit}>
+          <select
+            value={selectedLanguage}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            style={{ width: '100%', fontSize: '16px', padding: '10px' }}
+          >
+            <option value="">Select a language</option> {/* Default option */}
+            {languages.map((lang, index) => (
+              <option key={index} value={lang['BCP-47']}>{lang.Name}</option>
+            ))}
+          </select>
+          <h3>Select a Language Before You Proceed</h3>
           <input
             type="text"
             placeholder="Enter room name"
             value={roomName}
             onChange={(e) => setRoomName(e.target.value)}
           />
-          <button type="submit">Join Room</button>
+          <button type="submit" disabled={!selectedLanguage || !roomName}>Join Room</button>
           <div className="instructions">
             <h4><b>MVP</b></h4>
             <ul>
