@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import Video from "twilio-video";
 import "./App.css";
 import { useNavigate } from "react-router-dom";
+import languagesData from './languages.json'
+
 
 import * as io from "socket.io-client";
 
@@ -22,8 +24,11 @@ const getMediaStream = () =>
 function App() {
   const [roomName, setRoomName] = useState("");
   const [room, setRoom] = useState(null);
+  const [languages, setLanguages] = useState([]);
+  const [selectedLanguage, setSelectedLanguage] = useState('');
   const containerRef = useRef(null);
   const navigate = useNavigate();
+  
 
   // const [currentRecognition, setCurrentRecognition] = useState();
   // const [recognitionHistory, setRecognitionHistory] = useState([]);
@@ -92,6 +97,7 @@ function App() {
   );
 
   useEffect(() => {
+    setLanguages(languagesData);
     if (room) {
       const handleConnectedParticipant = (participant) => {
         const participantDiv = document.createElement("div");
@@ -189,7 +195,15 @@ function App() {
 
     connect();
     e.preventDefault();
-    const response = await fetch("http://127.0.0.1:5000/join-room", {
+    if (!selectedLanguage || !roomName) {
+      alert('Please select a language and enter a room name.');
+      return;
+    }
+    const requestBody = {
+      roomName,
+      language: selectedLanguage,
+    };
+    const response = await fetch("https://language-omegle.onrender.com//join-room", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -218,13 +232,25 @@ function App() {
     <div>
       {!room ? (
         <form onSubmit={handleSubmit}>
+          <select
+            value={selectedLanguage}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            style={{ width: '100%', fontSize: '16px', padding: '10px' }}
+          >
+            <option value="">Select a language</option> {/* Default option */}
+            <option value="">Select a language</option>
+            {languages.map((lang, index) => (
+              <option key={index} value={lang['BCP-47']}>{lang.Name}</option>
+            ))}
+          </select>
+          <h3>Select the language before proceeding</h3>
           <input
             type="text"
             placeholder="Enter room name"
             value={roomName}
             onChange={(e) => setRoomName(e.target.value)}
           />
-          <button type="submit" disabled={isRecording}>Join Room</button>
+          <button type="submit" disabled={!selectedLanguage || !roomName}>Join Room</button>
           <p className="instructions">
             <h4><b>MVP</b></h4>
             <ul>
