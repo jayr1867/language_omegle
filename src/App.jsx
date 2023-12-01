@@ -39,16 +39,18 @@ function App() {
   const audioContextRef = useRef();
   const audioInputRef = useRef();
 
-  const [requestBody, setRequestBody] = useState({});
+  // const [requestBody, setRequestBody] = useState({});
 
 
-  const connect = () => {
+  const connect = (requestBody) => {
     connection?.disconnect();
     const socket = io.connect("http://localhost:5000");
     socket.on("connect", () => {
       console.log("connected", socket.id);
       setConnection(socket);
     });
+
+    console.log("request body", requestBody);
 
     socket.emit('query', requestBody);
 
@@ -71,8 +73,12 @@ function App() {
   };
 
   const disconnect = () => {
-    if (!connection) return;
-    connection?.emit("endGoogleCloudStream", requestBody);
+    if (!connection) {
+      alert("No web socket connection, cannot connect to the room!");
+      room.disconnect();
+      return;
+    } 
+    connection?.emit("endGoogleCloudStream", roomName);
     connection?.disconnect();
     processorRef.current?.disconnect();
     audioInputRef.current?.disconnect();
@@ -160,6 +166,7 @@ function App() {
           };
           setIsRecording(true);
         } else {
+          // handleDisconnect();
           console.error("No connection");
         }
       })();
@@ -204,15 +211,17 @@ function App() {
     }
     e.preventDefault();
     
-    setRequestBody({
-      roomName,
+    const requestBody = ({
+      roomName: roomName,
       sttLang: selectedLanguage,
       transLang: selectedLanguage.split('-')[0],
     });
 
+    console.log(roomName, selectedLanguage, selectedLanguage.split('-')[0]);
+
     connect(requestBody);
 
-    console.log(requestBody.sttLang);
+    // console.log(requestBody.sttLang);
     const response = await fetch("https://lang-server.onrender.com/join-room", {
       method: "POST",
       headers: {
@@ -231,7 +240,8 @@ function App() {
   };
 
   const handleDisconnect = () => {
-    disconnect(requestBody);
+    disconnect();
+    console.log("disconnecting");
     room.disconnect();
     setRoom(null);
     navigate("/");
