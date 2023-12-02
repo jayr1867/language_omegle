@@ -20,10 +20,9 @@
   text-align: left;
 }
 
-
 .participant {
-  flex-basis: calc(50% - 10px); /* Each participant takes up half the container width minus the gap */
-  max-width: calc(50% - 10px); /* Ensure the max-width doesn't exceed flex-basis */
+  flex-basis: 20%; /* Adjusted for side-by-side view */
+  max-width: 20%; /* Adjusted for side-by-side view */
   border: 1px solid #ccc;
   background-color: #f0f0f0;
 }

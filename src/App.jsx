@@ -28,6 +28,7 @@ function App() {
   const [selectedLanguage, setSelectedLanguage] = useState('');
   const [receivedAudioText, setReceivedAudioText] = useState("");
   const containerRef = useRef(null);
+  const attachedTracks = useRef(new Set()); 
   const navigate = useNavigate();
 
   const [connection, setConnection] = useState();
@@ -40,7 +41,7 @@ function App() {
 
   const connect = (requestBody) => {
     connection?.disconnect();
-    const socket = io.connect("http://127.0.0.1:5000/", { reconnection: false });
+    const socket = io.connect("https://lang-server.onrender.com", { reconnection: false });
     socket.on("connect", () => {
       console.log("connected", socket.id);
       setConnection(socket);
@@ -110,6 +111,93 @@ function App() {
     },
     [room],
   );
+
+
+
+  const handleTrackPublication = (trackPublication, participant) => {
+    const participantDiv = document.getElementById(participant.identity);
+    const trackId = trackPublication.trackSid;
+    if (trackPublication.track && !attachedTracks.current.has(trackId)) {
+      attachedTracks.current.add(trackId);
+      const trackElement = trackPublication.track.attach();
+      trackElement.dataset.trackId = trackId; 
+      participantDiv.appendChild(trackElement);
+    }
+
+    trackPublication.on("subscribed", (track) => {
+      const trackId = track.sid;
+      if (!attachedTracks.current.has(trackId)) {
+        attachedTracks.current.add(trackId);
+        const trackElement = track.attach();
+        trackElement.dataset.trackId = trackId;
+        participantDiv.appendChild(trackElement);
+      }
+    });
+
+    trackPublication.on("unsubscribed", (track) => {
+      attachedTracks.current.delete(track.sid);
+      const trackElement = participantDiv.querySelector(`[data-track-id="${track.sid}"]`);
+      if (trackElement) {
+        trackElement.remove();
+      }
+    });
+
+  };
+
+  const joinVideoRoom = async (roomName, token) => {
+    const room = await Video.connect(token, { room: roomName });
+    setRoom(room);
+  };
+
+  const handleSubmit = async (e) => {
+
+    
+    if (!selectedLanguage || !roomName) {
+      alert('Please select a language and enter a room name.');
+      return;
+    }
+    e.preventDefault();
+    
+    const requestBody = ({
+      roomName: roomName,
+      sttLang: selectedLanguage,
+      transLang: selectedLanguage.split('-')[0],
+    });
+
+    console.log(roomName, selectedLanguage, selectedLanguage.split('-')[0]);
+
+    connect(requestBody);
+
+    // console.log(requestBody.sttLang);
+    const response = await fetch("https://lang-server.onrender.com/join-room", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ roomName }),
+    });
+    const { token } = await response.json();
+    try {
+      await joinVideoRoom(roomName, token);
+      navigate(`/room/${roomName}`);
+    } catch (err) {
+      alert(err);
+    }
+  };
+
+  const handleDisconnect = () => {
+    disconnect();
+
+    console.log("disconnecting");
+    if (room) {
+      // disconnect();
+      room.disconnect();
+    }
+    setRoom(null);
+    navigate("/");
+    setRoomName("");
+  };
 
   useEffect(() => {
     setLanguages(languagesData);
@@ -202,78 +290,12 @@ function App() {
   }, [room, isRecording, recorder, connection, handleDisconnectedParticipant]);
 
   // New useEffect for auto-scrolling captions
-useEffect(() => {
-  const captionsContainer = document.querySelector('.captions-container');
-  if (captionsContainer) {
-    captionsContainer.scrollTop = captionsContainer.scrollHeight;
-  }
-}, [receivedAudioText]);
-
-  const handleTrackPublication = (trackPublication, participant) => {
-    const participantDiv = document.getElementById(participant.identity);
-    if (trackPublication.track) {
-      participantDiv.appendChild(trackPublication.track.attach());
+  useEffect(() => {
+    const captionsContainer = document.querySelector('.captions-container');
+    if (captionsContainer) {
+      captionsContainer.scrollTop = captionsContainer.scrollHeight;
     }
-
-    trackPublication.on("subscribed", (track) => {
-      participantDiv.appendChild(track.attach());
-    });
-  };
-
-  const joinVideoRoom = async (roomName, token) => {
-    const room = await Video.connect(token, { room: roomName });
-    setRoom(room);
-  };
-
-  const handleSubmit = async (e) => {
-
-    
-    if (!selectedLanguage || !roomName) {
-      alert('Please select a language and enter a room name.');
-      return;
-    }
-    e.preventDefault();
-    
-    const requestBody = ({
-      roomName: roomName,
-      sttLang: selectedLanguage,
-      transLang: selectedLanguage.split('-')[0],
-    });
-
-    console.log(roomName, selectedLanguage, selectedLanguage.split('-')[0]);
-
-    connect(requestBody);
-
-    // console.log(requestBody.sttLang);
-    const response = await fetch("https://lang-server.onrender.com/join-room", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ roomName }),
-    });
-    const { token } = await response.json();
-    try {
-      await joinVideoRoom(roomName, token);
-      navigate(`/room/${roomName}`);
-    } catch (err) {
-      alert(err);
-    }
-  };
-
-  const handleDisconnect = () => {
-    disconnect();
-
-    console.log("disconnecting");
-    if (room) {
-      // disconnect();
-      room.disconnect();
-    }
-    setRoom(null);
-    navigate("/");
-    setRoomName("");
-  };
+  }, [receivedAudioText]);
 
   return (
     <div>
