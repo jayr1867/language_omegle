@@ -173,6 +173,7 @@ function App() {
       await joinVideoRoom(roomName, token);
       navigate(`/room/${roomName}`);
     } catch (err) {
+      handleDisconnect();
       alert(err);
     }
   };
