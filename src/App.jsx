@@ -293,25 +293,6 @@ function App() {
     <div>
       {!room ? (
         <form onSubmit={handleSubmit}>
-          <select
-            value={selectedLanguage}
-            onChange={(e) => setSelectedLanguage(e.target.value)}
-            style={{ width: '100%', fontSize: '16px', padding: '10px' }}
-          >
-            <option value="">Select a language</option> {/* Default option */}
-            <option value="">Select a language</option>
-            {languages.map((lang, index) => (
-              <option key={index} value={lang['BCP-47']}>{lang.Name}</option>
-            ))}
-          </select>
-          <h3>Selecting the language that you speak</h3>
-          <input
-            type="text"
-            placeholder="Enter room name"
-            value={roomName}
-            onChange={(e) => setRoomName(e.target.value)}
-          />
-          <button type="submit">Join Room</button>
           <div className="instructions">
             <h4><b>READ BEFORE PROCEEDING:</b></h4>
             <ul>
@@ -327,6 +308,25 @@ function App() {
               <li>If you do not see any text please wait for a few seconds and try talking again. Please speak clearly.</li>
             </ul>
           </div>
+          <select
+            value={selectedLanguage}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            style={{ width: '100%', fontSize: '16px', padding: '10px' }}
+          >
+            <option value="">Select a language</option> {/* Default option */}
+            {languages.map((lang, index) => (
+              <option key={index} value={lang['BCP-47']}>{lang.Name}</option>
+            ))}
+          </select>
+          <h3>Selecting the language that you speak</h3>
+          <input
+            type="text"
+            placeholder="Enter room name"
+            value={roomName}
+            onChange={(e) => setRoomName(e.target.value)}
+          />
+          <button type="submit">Join Room</button>
+          
         </form>
       ) : (
         <div>
