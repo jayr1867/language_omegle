@@ -41,7 +41,7 @@ function App() {
 
   const connect = (requestBody) => {
     connection?.disconnect();
-    const socket = io.connect("https://4lq7x35r-5000.use.devtunnels.ms/", { reconnection: false });
+    const socket = io.connect("https://lang-server.onrender.com", { reconnection: false });
     socket.on("connect", () => {
       console.log("connected", socket.id);
       setConnection(socket);
@@ -133,15 +133,6 @@ function App() {
         participantDiv.appendChild(trackElement);
       }
     });
-
-    // trackPublication.on("unsubscribed", (track) => {
-    //   attachedTracks.current.delete(track.sid);
-    //   const trackElement = participantDiv.querySelector(`[data-track-id="${track.sid}"]`);
-    //   if (trackElement) {
-    //     trackElement.remove();
-    //   }
-    // });
-
   };
 
   const joinVideoRoom = async (roomName, token) => {
@@ -169,7 +160,7 @@ function App() {
     connect(requestBody);
 
     // console.log(requestBody.sttLang);
-    const response = await fetch("https://4lq7x35r-5000.use.devtunnels.ms/join-room", {
+    const response = await fetch("https://lang-server.onrender.com/join-room", {
       method: "POST",
       headers: {
         Accept: "application/json",
