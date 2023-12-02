@@ -313,7 +313,7 @@ function App() {
               <option key={index} value={lang['BCP-47']}>{lang.Name}</option>
             ))}
           </select>
-          <h3>Select the language before proceeding</h3>
+          <h3>Selecting the language is mandatory before proceeding</h3>
           <input
             type="text"
             placeholder="Enter room name"
@@ -330,6 +330,10 @@ function App() {
                 for example: Room1, and join the room. You would see <br></br>two screens with two videos streaming at the same time.</li>
               <li>There is a disconnect button for you to disconnect from the live video streaming.</li>
               <li>There could only be at max two participants in a room, since we want to make it like Omegle.</li>
+              <li>You would see a translated transcript from the other user in the language you have selected. </li>
+              <li>The other user will see a translated transcript in the language they have selected. </li>
+              <li>Make sure to speak in the languages that you have selected for enhanced experience. </li>
+              <li>If you do not see any text please wait for a few seconds and try talking again. </li>
             </ul>
           </div>
         </form>
@@ -342,7 +346,7 @@ function App() {
             </button>
           </div>
           <div className="received-audio-text">
-            <h3>Received Audio Text:</h3>
+            <h3>Translated Transcript:</h3>
             <p>{receivedAudioText}</p>
             </div>
         </div>
