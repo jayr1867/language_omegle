@@ -41,7 +41,7 @@ function App() {
 
   const connect = (requestBody) => {
     connection?.disconnect();
-    const socket = io.connect("https://lang-server.onrender.com", { reconnection: false });
+    const socket = io.connect("https://4lq7x35r-5000.use.devtunnels.ms/", { reconnection: false });
     socket.on("connect", () => {
       console.log("connected", socket.id);
       setConnection(socket);
@@ -51,7 +51,7 @@ function App() {
 
     socket.emit('query', requestBody);
 
-    socket.emit("send_message", "hello world");
+    // socket.emit("send_message", "hello world");
 
     socket.emit("startGoogleCloudStream", requestBody);
 
@@ -134,13 +134,13 @@ function App() {
       }
     });
 
-    trackPublication.on("unsubscribed", (track) => {
-      attachedTracks.current.delete(track.sid);
-      const trackElement = participantDiv.querySelector(`[data-track-id="${track.sid}"]`);
-      if (trackElement) {
-        trackElement.remove();
-      }
-    });
+    // trackPublication.on("unsubscribed", (track) => {
+    //   attachedTracks.current.delete(track.sid);
+    //   const trackElement = participantDiv.querySelector(`[data-track-id="${track.sid}"]`);
+    //   if (trackElement) {
+    //     trackElement.remove();
+    //   }
+    // });
 
   };
 
@@ -169,7 +169,7 @@ function App() {
     connect(requestBody);
 
     // console.log(requestBody.sttLang);
-    const response = await fetch("https://lang-server.onrender.com/join-room", {
+    const response = await fetch("https://4lq7x35r-5000.use.devtunnels.ms/join-room", {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -197,6 +197,7 @@ function App() {
     setRoom(null);
     navigate("/");
     setRoomName("");
+    window.location.reload();
   };
 
   useEffect(() => {
@@ -320,7 +321,7 @@ function App() {
             onChange={(e) => setRoomName(e.target.value)}
           />
           <button type="submit">Join Room</button>
-          <p className="instructions">
+          <div className="instructions">
             <h4><b>MVP</b></h4>
             <ul>
               <li><strong>Please wait for a few seconds for the server to wake up after clicking the Join Room once.</strong></li>
@@ -330,7 +331,7 @@ function App() {
               <li>There is a disconnect button for you to disconnect from the live video streaming.</li>
               <li>There could only be at max two participants in a room, since we want to make it like Omegle.</li>
             </ul>
-          </p>
+          </div>
         </form>
       ) : (
         <div>
@@ -340,9 +341,9 @@ function App() {
               Disconnect
             </button>
           </div>
-            <div className="received-audio-text">
-              <h3>Received Audio Text:</h3>
-              <p>{receivedAudioText}</p>
+          <div className="received-audio-text">
+            <h3>Received Audio Text:</h3>
+            <p>{receivedAudioText || 'No audio text received.'}</p>
             </div>
         </div>
       )}
