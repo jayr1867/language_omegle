@@ -260,7 +260,7 @@ function App() {
           };
           setIsRecording(true);
         } else {
-          alert("No web socket connection, cannot join the room!");
+          alert("No web socket connection made. Try again!");
           handleDisconnect();
           // room.disconnect();
           console.error("No connection");
