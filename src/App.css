@@ -20,6 +20,10 @@
   text-align: left;
 }
 
+h3 {
+  color: #7e7e7e;
+}
+
 .participant {
   flex-basis: 47%; /* Adjusted for side-by-side view */
   max-width: 47%; /* Adjusted for side-by-side view */

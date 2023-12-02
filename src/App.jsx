@@ -313,7 +313,7 @@ function App() {
               <option key={index} value={lang['BCP-47']}>{lang.Name}</option>
             ))}
           </select>
-          <h3>Selecting the language is mandatory before proceeding</h3>
+          <h3>Selecting the language that you speak</h3>
           <input
             type="text"
             placeholder="Enter room name"
@@ -322,18 +322,18 @@ function App() {
           />
           <button type="submit">Join Room</button>
           <div className="instructions">
-            <h4><b>MVP</b></h4>
+            <h4><b>READ BEFORE PROCEEDING:</b></h4>
             <ul>
               <li><strong>Please wait for a few seconds for the server to wake up after clicking the Join Room once.</strong></li>
               <li>Enter a room name you want to create/join, and hit the Join Room button. </li>
               <li>Switch to a different browser (or, send a link and the room name to a friend) and use the same<br></br> URL and enter the same room name, 
                 for example: Room1, and join the room. You would see <br></br>two screens with two videos streaming at the same time.</li>
-              <li>There is a disconnect button for you to disconnect from the live video streaming.</li>
-              <li>There could only be at max two participants in a room, since we want to make it like Omegle.</li>
-              <li>You would see a translated transcript from the other user in the language you have selected. </li>
+              <li><strong>Recommend:</strong> Use a different device for the 2nd &quot;participant&quot; as opening another window will interfere in audio</li>
+              <li>You would see a translated transcription from the other user in the language you have selected. </li>
               <li>The other user will see a translated transcript in the language they have selected. </li>
-              <li>Make sure to speak in the languages that you have selected for enhanced experience. </li>
-              <li>If you do not see any text please wait for a few seconds and try talking again. </li>
+              <li>If both the user has selected a language with different dialect (eg. English (US) and English (UK)), <br></br>you will simply get a transcription in the same language. (English in the case of the example)</li>
+              <li>Make sure to speak in the language that you have selected for enhanced experience. </li>
+              <li>If you do not see any text please wait for a few seconds and try talking again. Please speak clearly.</li>
             </ul>
           </div>
         </form>
