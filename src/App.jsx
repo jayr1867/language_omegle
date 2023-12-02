@@ -235,7 +235,7 @@ function App() {
           audioContextRef.current = new window.AudioContext();
 
           await audioContextRef.current.audioWorklet.addModule(
-            "worklets/recorderWorkletProcessor.js"
+            "/src/worklets/recorderWorkletProcessor.js"
           );
 
           audioContextRef.current.resume();
