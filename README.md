@@ -18,7 +18,8 @@ If you have a private repository, please add `kaytwo` and `sauravjoshi` as colla
 
 ### Server
 
-Using a NodeJS to get the access token for the video from Twilio Video API.
+Using a NodeJS app with Express and Socket.IO.
+Manages the transaction for access token to Twilio Video API, and also transcripts, and translates the user audio using Google Speech-to-Text and Cloud Translate APIs respectively.
 
 - public
   - Deployed on `https://lang-server.onrender.com` with only one endpoint, `/join-room`, for now.
@@ -26,33 +27,31 @@ Using a NodeJS to get the access token for the video from Twilio Video API.
 
 ## How to use this application?
 
-  Click the Deployed URL link to visit the website. Enter a room name and hit the Join Room button.  
-  Switch to a different browser (or, send a link and the room name to friend) and use the same URL
-  and enter the same room name, for eg: Room1 and join the room. You would see two screens with two videos
-  streaming at the same time. There is a disconnect button for you to disconnect from the live video streaming.  
-  There could only be at max two participants in a room, since we want to make it like Omegle.
+### READ BEFORE PROCEEDING:
+
+- Please wait for a few seconds for the server to wake up after clicking the Join Room once.
+- Enter a room name you want to create/join, and hit the Join Room button.
+- Switch to a different browser (or, send a link and the room name to a friend) and use the same URL and enter the same room name, for example: Room1, and join the room. You would see two screens with two videos streaming at the same time.
+- **Recommend:** Use a different device for the 2nd &quot;participant&quot; as opening another window will interfere in audio
+- You would see a translated transcription from the other user in the language you have selected.
+- The other user will see a translated transcript in the language they have selected.
+- If both the user has selected a language with different dialect (eg. English (US) and English (UK)), you will simply get a transcription in the same language. (English in the case of the example)
+- Make sure to speak in the language that you have selected for enhanced experience.
+- If you do not see any text please wait for a few seconds and try talking again. Please speak clearly.
 
 ## What does your application do?
 
-### Initial thoughts (plans)
-
-- A place where a user could "video" chat with a stranger and not have to speak a common language to understand each other.
-  - While person A speaks (for example) French and person B speaks Mandarin, they can understand each other using real-time subtitles while speaking their own language.
-  - (Potential) Would also have an audio-only and/or a chat-only feature where they don't need to be connected using a video, but still get subtitles along with the "original" language audio/text.
-- If a user doesn't want to have human interaction, at all, they would be able to "video call" an AI, which would reply to them based on what the conversion is, and the language the user selects (language other than what they speak,) or they could also just randomize the language of the AI.
+- An application that provides video calling option for people who want to talk to other people but don't speak the same language.
+- App gets the audio transcription and translates it to the language you speak. Does the same for the other person.
 
 ## What makes it different than a CRUD app? I.e., what functionality does it provide that is not just a user interface layer on top of a database of user information,and the ability to view / add to / change that information?
 
-### Potentially
-
-- The app would let the user talk using a video service and when there is no human found, the app would connect it to an AI "video" that would respond to the user using chatgpt's response.
+- Being able to get the audio, transcripting it, and translating it and displaying it to the other person in real-time.
 
 ## What security and privacy concerns do you expect you (as developers) or your users to have with this application?
 
-### Initial concerns
-
-1. Security of the user's personal information (name, email, phone number, etc)- If we choose to store those.
-2. Explicit/profanity while on video call.
+1. People sharing the room name to anyone could potentially have them with someone they might not want to be. They could just disconnet if that happens.
+2. The APIs get attacked and become vulnerable to data leakage.
 
 ### This repository
 
