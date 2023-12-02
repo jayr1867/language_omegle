@@ -92,32 +92,6 @@ button.disconnect-button {
   cursor: pointer;
 }
 
-.received-audio-text {
-  background-color: #f9f9f9; /* Light background to distinguish the area */
-  border-left: 4px solid #2a7de1; /* A colored line to indicate this section is different */
-  padding: 1rem; /* Some padding for white space */
-  margin-top: 1rem; /* Space above the section */
-  max-width: 80%; /* Maximum width to prevent too long lines */
-  margin-left: auto; /* Centering the div */
-  margin-right: auto; /* Centering the div */
-}
-
-.received-audio-text h3 {
-  margin-bottom: 0.5rem; /* Space between the title and the content */
-  color: #333; /* Dark color for the title for contrast */
-}
-
-.received-audio-text p {
-  background-color: #fff; /* White background for the text area */
-  border: 1px solid #ddd; /* Border to distinguish the text area */
-  padding: 0.5rem; /* Padding inside the text area */
-  border-radius: 4px; /* Rounded corners for the text area */
-  color: #555; /* Slightly lighter text color for readability */
-  font-family: 'Arial', sans-serif; /* Font family for the text */
-  min-height: 2em; /* Minimum height to ensure visibility even if empty */
-  word-wrap: break-word; /* Ensure long words do not overflow */
-  overflow-wrap: break-word; /* Ensure long words do not overflow */
-}
 
 @media (max-width: 768px) {
   .participant {

@@ -343,7 +343,7 @@ function App() {
           </div>
           <div className="received-audio-text">
             <h3>Received Audio Text:</h3>
-            <p>{receivedAudioText || 'No audio text received.'}</p>
+            <p>{receivedAudioText}</p>
             </div>
         </div>
       )}
